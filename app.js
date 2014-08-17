@@ -44,6 +44,15 @@ var board = {
 		var temp = cells[i];
 		cells[i] = new BlockCell(temp.x, temp.y, newType);
 	}, 
+	getCellIndex: function(x, y) {
+		for (var i = 0; i < board.cells.length; i++) {
+			for (var j = 0; j < board.cells[i].length; j++) {
+				if (board.cells[i][j].x == x && board.cells[i][j].y == y) {
+					return "[" + i + "]" + "[" + j+ "]";
+				}
+			}
+		}
+	}
 };
 
 //Cell constructor
@@ -73,20 +82,24 @@ function BlockCell(x, y) {
 	this.status = 2;
 }
 
+
+
 function setCells() {
 	board.cells = [];
-	for(var i = 0; i < TOTAL_CELLS; i++) {
-		var newx = i%BOARD_WIDTH;
-		var newy = Math.floor(i/BOARD_HEIGHT);
-		var newCell = new Cell(newx, newy);
-
-		//Give each newCell property that 
-		board.cells.push(newCell);
+	for(var i = 0; i < BOARD_HEIGHT; i++) {
+		var rowArray = [];
+		var newy = i;
+		for(var j = 0; j < BOARD_WIDTH; j++) {
+			var newx = j;
+			var newCell = new Cell(newx, newy);
+			rowArray.push(newCell);
+		}
+		board.cells.push(rowArray);
 	}
-	debugger;
 };
 
 setCells();
+
 
 function startGame() {
 	// grid = new PH.Grid(cols,rows,matrix);
