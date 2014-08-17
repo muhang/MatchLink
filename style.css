@@ -2,6 +2,8 @@
 	box-sizing: border-box;
 	-moz-box-sizing: border-box;
 	-webkit-box-sizing: border-box;
+	font-family: 'Roboto', sans-serif;
+	font-weight: 300;
 }
 
 html, body {
@@ -11,6 +13,29 @@ html, body {
 	position: relative;
 	padding: 0;
 	margin: 0;
+	background: #f4f5f4;
+}
+
+h1.title {
+	margin: 0;
+	text-align: center;
+	line-height: 22vh;
+	font-size: 6vh;
+}
+
+.pause-btn {
+	position: absolute;
+	bottom: 5vh;
+	left: 50%;
+	margin-left: -20vw;
+	width: 40vw;
+	height: 15vw;
+	border-radius: 2vh;
+	text-align: center;
+	border: 1px solid #000;
+	line-height: 15vw;
+	text-transform: uppercase;
+	letter-spacing: 0.8vh;
 }
 
 .main {
@@ -24,47 +49,165 @@ html, body {
 .board {
 	height: 100vw;
 	width: 100vw;
-	display: block;
-	margin: 0 auto;
+	position: absolute;
+	top: 50%;
+	margin-top: -50vw;
+	background: #aaa;
 }
 
 .row {
 	height: 16.66vw;
 	width: 100%;
-	border-bottom: 1px solid #000;
+	border-bottom: 1px solid #aaa;
 	display: block;
 }
 
 .row:first-of-type {
-	border-top: 1px solid #000;
+	border-top: 1px solid #aaa;
 }
 
 .cell {
+	background: #f4f5f4;
 	float: left;
 	width: 16.66vw;
 	height: 100%;
-	border-left: 1px solid #000;
+	border-left: 1px solid #aaa;
 	display: inline-block;
 	margin: 0;
+	transition: all 0.2s linear;
+	-moz-transition: all 0.2s linear;
+	-webkit-transition: all  0.2s linear;
+	z-index: 2;
+	position: relative;
 }
 
 .row .cell:last-of-type {
-	border-right: 1px solid #000;
+	border-right: 1px solid #aaa;
 }
 
-.type1, .type2, .type3, .type4, .type5, .type6, .type7, .type8 {
-	background: red;
+.type1 {
+	background: #db4437;
 }
 
-@media screen and (min-width: 1024px) {
+.type2 {
+	background: #4285f4;
+}
+
+.type3 {
+	background: #0f9d58;
+}
+
+.type4 {
+	background: #f4b400;
+}
+
+.type5 {
+	background: #db4437;
+}
+
+.type5:after {
+	position: absolute;
+	background: #f4f5f4;
+	width: 6vw;
+	height: 6vw;
+	content: "";
+	color: #f4f5f4;
+	top: 50%;
+	left: 50%;
+	margin-left: -3vw;
+	margin-top: -3vw;
+}
+
+.type6 {
+	background: #4285f4;
+}
+
+.type6:after {
+	position: absolute;
+	background: #f4f5f4;
+	background: none;
+	content: "";
+	width: 0; 
+	height: 0; 
+	border-left: 3vw solid transparent; 
+	border-right: 3vw solid transparent; 
+	border-top: 6vw solid #f4f5f4;
+	top: 50%;
+	left: 50%;
+	margin-left: -3vw;
+	margin-top: -3vw;
+}
+
+.type7 {
+	background: #f4b400;
+}
+
+.type7:after {
+	background: #f4b400;
+	position: absolute;
+	background: #f4f5f4;
+	width: 6vw;
+	height: 6vw;
+	content: "";
+	color: #f4f5f4;
+	top: 50%;
+	left: 50%;
+	margin-left: -3vw;
+	margin-top: -3vw;
+}
+
+.type8 {
+	background: #f4b400;
+}
+
+.type8:after {
+	position: absolute;
+	background: #f4f5f4;
+	background: none;
+	content: "";
+	width: 0; 
+	height: 0; 
+	border-left: 3vw solid transparent; 
+	border-right: 3vw solid transparent; 
+	border-top: 6vw solid #f4f5f4;
+	top: 50%;
+	left: 50%;
+	margin-left: -3vw;
+	margin-top: -3vw;
+}
+
+.cell.selected {
+	background: yellow;
+	transition: all 0.2s linear;
+	-moz-transition: all 0.2s linear;
+	-webkit-transition: all  0.2s linear;
+}
+
+.cell.error {
+
+}
+
+.cell.pathflash {
+	border-radius: 50%;
+	transition: all 0.2s linear;
+	-moz-transition: all 0.2s linear;
+	-webkit-transition: all  0.2s linear;
+}
+
+
+@media (orientation: landscape) {
 	.board {
-		height: 100vh;
-		width: 100vh;
+		position: relative;
+		display: block;
+		margin: 0 auto;
+		height: 70vh;
+		width: 70vh;
+		top: 0;
 	}
 	.row {
-		height: 16.66vh;
+		height: 16.66%;
 	}
 	.cell {
-		width: 16.66vh;
+		width: 16.66%;
 	}
 }

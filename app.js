@@ -11,9 +11,13 @@ var timer = 0;
 //Initialize game state
 var game = true;
 var timePlayed = 0;
+var paused = false;
 
 //Initialize selection array
 var selectedCells = [];
+
+//Initial array of cells in path
+var pathCells = [];
 
 //Create matrix for pathfinder based on board
 var createMatrix = function() {
@@ -31,8 +35,6 @@ var createMatrix = function() {
 
 var pfMatrix = createMatrix();
 
-console.log(pfMatrix);
-
 //initialize grid for pathfinder
 var grid = new PF.Grid(BOARD_WIDTH, BOARD_HEIGHT, pfMatrix);
 
@@ -48,15 +50,18 @@ var board = {
 		this.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
 		this.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
 		this.cells[cell.y][cell.x].domEl.addClass(newType);
+		grid.setWalkableAt(cell.x, cell.y, false);
+		grid.setWalkableAt(cell.x, cell.y, false);
 	}, 
 	makeEmpty: function(cell) {
 		var oldClass = this.cells[cell.y][cell.x].domEl.attr('class').split(' ').pop();
 		this.cells[cell.y][cell.x].domEl.removeClass(oldClass);
-		console.log(oldClass);
 		var temp = this.cells[cell.y][cell.x];
 		this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
 		this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
 		this.cells[cell.y][cell.x].domEl.addClass("empty");
+		grid.setWalkableAt(cell.x, cell.y, true);
+		grid.setWalkableAt(cell.x, cell.y, true);
 	}, 
 	makeBlock: function(cell) {
 		var oldClass = this.cells[cell.y][cell.x].domEl.attr('class').split(' ').pop();
@@ -65,83 +70,85 @@ var board = {
 		this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
 		this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
 		this.cells[cell.y][cell.x].domEl.addClass("block");
+		grid.setWalkableAt(cell.x, cell.y, true);
+		grid.setWalkableAt(cell.x, cell.y, true);
 	}, 
-	shiftLeft: function() {
-		var cellsShifted = 0;
-		for(var i = 0; i < board.cells.length; i++) {
-			for (var j = 0; j < board.cells[i].length; j++) {
-				var tempCell = board.cells[i][j];
-				if(j - 1 >= 0) {
-					var leftCell = board.cells[i][j-1];
-					if(leftCell.status == 0 && tempCell.status == 1) {
-						replaceCells(tempCell, leftCell)
-						cellsShifted++;
-					}
-				}
-			}
-		}
-		if(cellsShifted > 0) {
-			return true;
-		}
-		return false;
-	},
-	shiftRight: function() {
-		var cellsShifted = 0;
-		for(var i = 0; i < board.cells.length; i++) {
-			for (var j = 0; j < board.cells[i].length; j++) {
-				var tempCell = board.cells[i][j];
-				if(j + 1 <= BOARD_WIDTH - 1) {
-					var rightCell = board.cells[i][j+1];
-					if(rightCell.status == 0 && tempCell.status == 1) {
-						replaceCells(tempCell, rightCell)
-						cellsShifted++;
-					}
-				}
-			}
-		}
-		if(cellsShifted > 0) {
-			return true;
-		}
-		return false;
-	},
-	shiftUp: function() {
-		var cellsShifted = 0;
-		for(var i = 0; i < board.cells.length; i++) {
-			for (var j = 0; j < board.cells[i].length; j++) {
-				var tempCell = board.cells[i][j];
-				if(i - 1 >= 0) {
-					var upCell = board.cells[i-1][j];
-					if(upCell.status == 0 && tempCell.status == 1) {
-						replaceCells(tempCell, upCell)
-						cellsShifted++;
-					}
-				}
-			}
-		}
-		if(cellsShifted > 0) {
-			return true;
-		}
-		return false;
-	}, 
-	shiftDown: function() {
-		var cellsShifted = 0;
-		for(var i = 0; i < board.cells.length; i++) {
-			for (var j = 0; j < board.cells[i].length; j++) {
-				var tempCell = board.cells[i][j];
-				if(i + 1 <= BOARD_HEIGHT - 1) {
-					var downCell = board.cells[i][j-1];
-					if(downCell.status == 0 && tempCell.status == 1) {
-						replaceCells(tempCell, downCell)
-						cellsShifted++;
-					}
-				}
-			}
-		}
-		if(cellsShifted > 0) {
-			return true;
-		}
-		return false;
-	}
+	// shiftLeft: function() {
+	// 	var cellsShifted = 0;
+	// 	for(var i = 0; i < board.cells.length; i++) {
+	// 		for (var j = 0; j < board.cells[i].length; j++) {
+	// 			var tempCell = board.cells[i][j];
+	// 			if(j - 1 >= 0) {
+	// 				var leftCell = board.cells[i][j-1];
+	// 				if(leftCell.status == 0 && tempCell.status == 1) {
+	// 					replaceCells(tempCell, leftCell)
+	// 					cellsShifted++;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	if(cellsShifted > 0) {
+	// 		return true;
+	// 	}
+	// 	return false;
+	// },
+	// shiftRight: function() {
+	// 	var cellsShifted = 0;
+	// 	for(var i = 0; i < board.cells.length; i++) {
+	// 		for (var j = 0; j < board.cells[i].length; j++) {
+	// 			var tempCell = board.cells[i][j];
+	// 			if(j + 1 <= BOARD_WIDTH - 1) {
+	// 				var rightCell = board.cells[i][j+1];
+	// 				if(rightCell.status == 0 && tempCell.status == 1) {
+	// 					replaceCells(tempCell, rightCell)
+	// 					cellsShifted++;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	if(cellsShifted > 0) {
+	// 		return true;
+	// 	}
+	// 	return false;
+	// },
+	// shiftUp: function() {
+	// 	var cellsShifted = 0;
+	// 	for(var i = 0; i < board.cells.length; i++) {
+	// 		for (var j = 0; j < board.cells[i].length; j++) {
+	// 			var tempCell = board.cells[i][j];
+	// 			if(i - 1 >= 0) {
+	// 				var upCell = board.cells[i-1][j];
+	// 				if(upCell.status == 0 && tempCell.status == 1) {
+	// 					replaceCells(tempCell, upCell)
+	// 					cellsShifted++;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	if(cellsShifted > 0) {
+	// 		return true;
+	// 	}
+	// 	return false;
+	// }, 
+	// shiftDown: function() {
+	// 	var cellsShifted = 0;
+	// 	for(var i = 0; i < board.cells.length; i++) {
+	// 		for (var j = 0; j < board.cells[i].length; j++) {
+	// 			var tempCell = board.cells[i][j];
+	// 			if(i + 1 <= BOARD_HEIGHT - 1) {
+	// 				var downCell = board.cells[i][j-1];
+	// 				if(downCell.status == 0 && tempCell.status == 1) {
+	// 					replaceCells(tempCell, downCell)
+	// 					cellsShifted++;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	if(cellsShifted > 0) {
+	// 		return true;
+	// 	}
+	// 	return false;
+	// }
 };
 
 var getCellIndex = function(x, y) {
@@ -194,8 +201,16 @@ function BlockCell(x, y) {
 
 function replaceCells(cell1, cell2) {
 	var saveCell = cell1;
-	board.getCellIndex(cell1) = new Cell(cell1.x, cell1.y);
-	board.getCellIndex(cell2) = saveCell;
+	for (var i = 0; i < board.cells.length; i++) {
+		for (var j = 0; j < board.cells[i].length; j++) {
+			if(board.cells[i][j].x == cell1.x && board.cells[i][j].y == cell1.y) {
+				board.cells[i][j] = new Cell(cell1.x, cell1.y);
+			}
+			if(board.cells[i][j].x == cell2.x && board.cells[i][j].y == cell2.y) {
+				boardCell[i][j] = saveCell;
+			}
+		}
+	}
 }
 
 function typeMatch(cell1, cell2) {
@@ -210,7 +225,6 @@ var getPath = function(cell1, cell2) {
 	//PathfindingJS stuff
 	grid.setWalkableAt(cell1.x, cell1.y, true);
 	grid.setWalkableAt(cell2.x, cell2.y, true);
-	var pathCells = [];
 	var gridBackup = grid.clone();
 	var finder = new PF.AStarFinder();
 	var path = finder.findPath(cell1.x, cell1.y, cell2.x, cell2.y, grid);
@@ -222,24 +236,30 @@ var getPath = function(cell1, cell2) {
 	}
 	catch(err){
 		path = [];
-		return pathCells;		//Failure
+		return false;		//Failure
 	}
 
 	if(path.length) {
 		for(var i = 0; i < path.length; i++) {
-			pathCells.push(getCell(path[i][0], path[i][1]));
-			return pathCells;
+			var boardCell = getCell(path[i][0], path[i][1]);
+			console.log(boardCell);
+			pathCells.push(boardCell);
 		}
+		console.log(pathCells);
+		flashPath(pathCells);
+		pathCells = [];
+		return true;
 	}
-	return pathCells;
+	debugger;
+	return true;
 };
 
 function flashPath(pathArray) {
 	for(var i = 0; i < pathArray.length; i++) {
 		(function(i){
 			setTimeout(function(){
-				$(pathArray[i]).addClass('pathflash').delay(500).queue(function(next){
-					$(this).removeClass('pathflash').dequeue();
+				pathArray[i].domEl.addClass('pathflash').delay(500).queue(function(next){
+					pathArray[i].domEl.removeClass('pathflash').dequeue();
 				});
 			}, 100 * i);
 		}(i));
@@ -256,14 +276,10 @@ function flashError(array) {
 
 function matchCells(cell1, cell2) {
 	if(typeMatch(cell1, cell2)) {
-		var matchPath = getPath(cell1, cell2);
-		if(matchPath.length != 0) {
-			flashPath(matchPath);
+		if(getPath(cell1, cell2)) {
+			flashPath(pathCells);
 			board.makeEmpty(cell1);
 			board.makeEmpty(cell2);
-			grid.setWalkableAt(cell1.x, cell1.y, true);
-			grid.setWalkableAt(cell2.x, cell2.y, true);
-			console.log("Matched!");
 		}
 
 	}
@@ -334,56 +350,96 @@ function generateRandPair(type) {
 
 function startTimer() {
 	setInterval(function(){
-		var generatedType = ACTIVE_TYPES[Math.floor(Math.random()*ACTIVE_TYPES.length)];
-		if(timer%5 == 0) {
-			generateRandPair(generatedType);
+		if(paused == false) {
+			var generatedType = ACTIVE_TYPES[Math.floor(Math.random()*ACTIVE_TYPES.length)];
+			if(timer%2 == 0) {
+				generateRandPair(generatedType);
+			}
+			timer++;
 		}
-		timer++;
 	}, 1000);
 }
 
 setCells();
 
-$('.cell').on("click", function(e){
+//Cell click handler
+$('.cell').on("click touchstart", function(e){
 	e.preventDefault();
-	for (var i = 0; i < board.cells.length; i++) {
-		for (var j = 0; j < board.cells[i].length; j++) {
+	if(paused == false) {
+		for (var i = 0; i < board.cells.length; i++) {
+			for (var j = 0; j < board.cells[i].length; j++) {
 
-			if (board.cells[i][j].x == $(this).data("x") && board.cells[i][j].y == $(this).data("y")) {
-				var clickedCell = board.cells[i][j];
-				console.log(clickedCell);
+				if (board.cells[i][j].x == $(this).data("x") && board.cells[i][j].y == $(this).data("y")) {
+					var clickedCell = board.cells[i][j];
+				}
 			}
 		}
-	}
-	if(selectedCells.length == 0) {
-		//First cell selected
-		clickedCell.selected = true;
-		clickedCell.domEl.addClass("selected");
-		selectedCells.push(clickedCell);
-	}
-	else {
-		if (selectedCells.length == 1) {
-			//Cell is duplicate
-			if(clickedCell.selected == true) {
-				selectedCells[0].selected = false;
-				selectedCells = [];
-				clickedCell.domEl.removeClass("selected");
-			}
-			else {
-				//Cell can be matched
-				clickedCell.selected == true;
-				clickedCell.domEl.addClass("selected");
-				selectedCells.push(clickedCell);
-				selectedCells[0].domEl.removeClass("selected");
-				selectedCells[1].domEl.removeClass("selected");
-				selectedCells[0].selected = false;
-				selectedCells[1].selected = false;
-				matchCells(selectedCells[0], selectedCells[1]);
-				selectedCells = [];
+		if(clickedCell.type == "empty") {
+			return false;
+		}
+		if(selectedCells.length == 0) {
+			//First cell selected
+			clickedCell.selected = true;
+			clickedCell.domEl.addClass("selected");
+			selectedCells.push(clickedCell);
+		}
+		else {
+			if (selectedCells.length == 1) {
+				//Cell is duplicate
+				if(clickedCell.selected == true) {
+					selectedCells[0].selected = false;
+					selectedCells = [];
+					clickedCell.domEl.removeClass("selected");
+				}
+				else {
+					//Cell can be matched
+					clickedCell.selected == true;
+					clickedCell.domEl.addClass("selected");
+					selectedCells.push(clickedCell);
+					selectedCells[0].domEl.removeClass("selected");
+					selectedCells[1].domEl.removeClass("selected");
+					selectedCells[0].selected = false;
+					selectedCells[1].selected = false;
+					matchCells(selectedCells[0], selectedCells[1]);
+					selectedCells = [];
+				}
 			}
 		}
 	}
 });
+
+$('.pause-btn').on("click touchstart", function(e){
+	e.preventDefault();
+	if(paused == true) {
+		paused = false;
+	}
+	else {
+		paused = true;
+	}
+});
+
+// $(document).keydown(function(e) {
+//     switch(e.which) {
+//         case 37: // left
+//         board.shiftLeft();
+//         break;
+
+//         case 38: // up
+//         board.shiftUp();
+//         break;
+
+//         case 39: // right
+//         board.shiftRight();
+//         break;
+
+//         case 40: // down
+//         board.shiftDown();
+//         break;
+
+//         default: return; // exit this handler for other keys
+//     }
+//     e.preventDefault(); // prevent the default action (scroll / move caret)
+// });
 
 function startEndless() {
 	setCells();
