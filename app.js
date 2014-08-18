@@ -32,7 +32,6 @@ var createMatrix = function() {
 	}
 	return matrix;
 };
-
 var pfMatrix = createMatrix();
 
 //initialize grid for pathfinder
@@ -43,13 +42,19 @@ var board = {
 	width: BOARD_WIDTH,
 	length: BOARD_HEIGHT,
 	cells: [],
+
+	//make new Cell object or child
 	makeActive: function(cell, newType) {
+		//Remove css class from dom el
 		var oldClass = this.cells[cell.y][cell.x].domEl.attr('class').split(' ').pop();
 		this.cells[cell.y][cell.x].domEl.removeClass(oldClass);
+		//Replace Cell in board.cells
 		var temp = this.cells[cell.y][cell.x];
 		this.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
 		this.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
+		//Add class to dom el
 		this.cells[cell.y][cell.x].domEl.addClass(newType);
+		//Set PF
 		grid.setWalkableAt(cell.x, cell.y, false);
 		grid.setWalkableAt(cell.x, cell.y, false);
 	}, 
@@ -73,94 +78,9 @@ var board = {
 		grid.setWalkableAt(cell.x, cell.y, true);
 		grid.setWalkableAt(cell.x, cell.y, true);
 	}, 
-	// shiftLeft: function() {
-	// 	var cellsShifted = 0;
-	// 	for(var i = 0; i < board.cells.length; i++) {
-	// 		for (var j = 0; j < board.cells[i].length; j++) {
-	// 			var tempCell = board.cells[i][j];
-	// 			if(j - 1 >= 0) {
-	// 				var leftCell = board.cells[i][j-1];
-	// 				if(leftCell.status == 0 && tempCell.status == 1) {
-	// 					replaceCells(tempCell, leftCell)
-	// 					cellsShifted++;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	if(cellsShifted > 0) {
-	// 		return true;
-	// 	}
-	// 	return false;
-	// },
-	// shiftRight: function() {
-	// 	var cellsShifted = 0;
-	// 	for(var i = 0; i < board.cells.length; i++) {
-	// 		for (var j = 0; j < board.cells[i].length; j++) {
-	// 			var tempCell = board.cells[i][j];
-	// 			if(j + 1 <= BOARD_WIDTH - 1) {
-	// 				var rightCell = board.cells[i][j+1];
-	// 				if(rightCell.status == 0 && tempCell.status == 1) {
-	// 					replaceCells(tempCell, rightCell)
-	// 					cellsShifted++;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	if(cellsShifted > 0) {
-	// 		return true;
-	// 	}
-	// 	return false;
-	// },
-	// shiftUp: function() {
-	// 	var cellsShifted = 0;
-	// 	for(var i = 0; i < board.cells.length; i++) {
-	// 		for (var j = 0; j < board.cells[i].length; j++) {
-	// 			var tempCell = board.cells[i][j];
-	// 			if(i - 1 >= 0) {
-	// 				var upCell = board.cells[i-1][j];
-	// 				if(upCell.status == 0 && tempCell.status == 1) {
-	// 					replaceCells(tempCell, upCell)
-	// 					cellsShifted++;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	if(cellsShifted > 0) {
-	// 		return true;
-	// 	}
-	// 	return false;
-	// }, 
-	// shiftDown: function() {
-	// 	var cellsShifted = 0;
-	// 	for(var i = 0; i < board.cells.length; i++) {
-	// 		for (var j = 0; j < board.cells[i].length; j++) {
-	// 			var tempCell = board.cells[i][j];
-	// 			if(i + 1 <= BOARD_HEIGHT - 1) {
-	// 				var downCell = board.cells[i][j-1];
-	// 				if(downCell.status == 0 && tempCell.status == 1) {
-	// 					replaceCells(tempCell, downCell)
-	// 					cellsShifted++;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	if(cellsShifted > 0) {
-	// 		return true;
-	// 	}
-	// 	return false;
-	// }
 };
 
-var getCellIndex = function(x, y) {
-	for (var i = 0; i < board.cells.length; i++) {
-		for (var j = 0; j < board.cells[i].length; j++) {
-			if (board.cells[i][j].x == x && board.cells[i][j].y == y) {
-				return "[" + i + "]" + "[" + j+ "]";
-			}
-		}
-	}
-}; 
-
+//Sets var to new object, params: x, y values of cell in board.cells
 var getCell = function(x, y) {
 	for (var i = 0; i < board.cells.length; i++) {
 		for (var j = 0; j < board.cells[i].length; j++) {
@@ -199,20 +119,79 @@ function BlockCell(x, y) {
 	this.status = 2;
 }
 
-function replaceCells(cell1, cell2) {
-	var saveCell = cell1;
-	for (var i = 0; i < board.cells.length; i++) {
-		for (var j = 0; j < board.cells[i].length; j++) {
-			if(board.cells[i][j].x == cell1.x && board.cells[i][j].y == cell1.y) {
-				board.cells[i][j] = new Cell(cell1.x, cell1.y);
-			}
-			if(board.cells[i][j].x == cell2.x && board.cells[i][j].y == cell2.y) {
-				boardCell[i][j] = saveCell;
-			}
+//Main game functions
+
+//Empty board.cells and repopulate with new empty Cells
+function setCells() {
+	board.cells = [];
+	for(var i = 0; i < BOARD_HEIGHT; i++) {
+		var rowArray = [];
+		var newy = i;
+		for(var j = 0; j < BOARD_WIDTH; j++) {
+			var newx = j;
+			var newCell = new Cell(newx, newy);
+			newCell.domEl.addClass(newCell.type);
+			rowArray.push(newCell);
 		}
+		board.cells.push(rowArray);
 	}
 }
 
+function startTimer() {
+	setInterval(function(){
+		if(paused == false) {
+			var generatedType = ACTIVE_TYPES[Math.floor(Math.random()*ACTIVE_TYPES.length)];
+			if(timer%2 == 0) {
+				generateRandPair(generatedType);
+			}
+			timer++;
+		}
+	}, 1000);
+}
+
+//Checks for loss then replaces two empty Cells within board with ActiveCells
+function generateRandPair(type) {
+	if(lossCheck()) {
+		//end game
+	}
+	var emptyCells = [];
+	for(var i = 0; i < BOARD_HEIGHT; i++) {
+		for(var j = 0; j < BOARD_WIDTH; j++) {
+			if(board.cells[i][j].type == "empty") {
+				emptyCells.push(board.cells[i][j]);
+			}
+		}
+	}
+	var random1 = emptyCells[Math.floor(Math.random()*emptyCells.length)];
+	var random2 = emptyCells[Math.floor(Math.random()*emptyCells.length)];
+	if(type != "block") {
+		board.makeActive(random1, type);
+		board.makeActive(random2, type);
+	}
+	else {
+		board.makeBlock(random1);
+		board.makeBlock(random2);
+	}
+}
+
+//Called with startTimer() runs generateRandPair()
+function lossCheck() {
+	var takenCells = [];
+	for(var i = 0; i < BOARD_HEIGHT; i++) {
+		for(var j = 0; j < BOARD_WIDTH; j++) {
+			if(board.cells[i][j].status == 1 || board.cells[i][j].status == 2) {
+				takenCells.push(board.cells[i][j]);
+			}
+		}
+	}
+	if(takenCells.length == TOTAL_CELLS) {
+		game = false;	//End game
+	}
+}
+
+//Match handlers
+
+//Simple match if ActiveCells
 function typeMatch(cell1, cell2) {
 	if(cell1.status == 1 && cell2.status == 1 && cell1.type == cell2.type) {
 		return true;
@@ -220,7 +199,31 @@ function typeMatch(cell1, cell2) {
 	return false;
 }
 
-var getPath = function(cell1, cell2) {
+//Check for match and replace in board.cells with empty Cells
+//Executes path animation
+function matchCells(cell1, cell2) {
+	if(typeMatch(cell1, cell2)) {
+		if(getPath(cell1, cell2)) {
+			flashPath(pathCells);
+			board.makeEmpty(cell1);
+			board.makeEmpty(cell2);
+		}
+
+	}
+	else {
+		if(cell1.status == 1 && cell2.status == 1) {
+			flashError[cell1, cell2];
+		}
+		// else {
+		// 	if(cell2.status == 2 && cell2.status == 2) {
+		// 		//flash error, cells are blocks
+		// 	}
+		// }
+	}
+}
+
+//run pathfinder
+function getPath(cell1, cell2) {
 
 	//PathfindingJS stuff
 	grid.setWalkableAt(cell1.x, cell1.y, true);
@@ -252,117 +255,12 @@ var getPath = function(cell1, cell2) {
 	}
 	debugger;
 	return true;
-};
-
-function flashPath(pathArray) {
-	for(var i = 0; i < pathArray.length; i++) {
-		(function(i){
-			setTimeout(function(){
-				pathArray[i].domEl.addClass('pathflash').delay(500).queue(function(next){
-					pathArray[i].domEl.removeClass('pathflash').dequeue();
-				});
-			}, 100 * i);
-		}(i));
-	}
 }
 
-function flashError(array) {
-	for (var i = 0; i < array.length; i++) {
-		$(array[i]).addClass('error').delay(500).queue(function(next){
-			$(this).removeClass('error').dequeue();
-		});
-	}
-}
 
-function matchCells(cell1, cell2) {
-	if(typeMatch(cell1, cell2)) {
-		if(getPath(cell1, cell2)) {
-			flashPath(pathCells);
-			board.makeEmpty(cell1);
-			board.makeEmpty(cell2);
-		}
+//Event handlers
 
-	}
-	else {
-		if(cell1.status == 1 && cell2.status == 1) {
-			flashError[cell1, cell2];
-		}
-		// else {
-		// 	if(cell2.status == 2 && cell2.status == 2) {
-		// 		//flash error, cells are blocks
-		// 	}
-		// }
-	}
-}
-
-function setCells() {
-	board.cells = [];
-	for(var i = 0; i < BOARD_HEIGHT; i++) {
-		var rowArray = [];
-		var newy = i;
-		for(var j = 0; j < BOARD_WIDTH; j++) {
-			var newx = j;
-			var newCell = new Cell(newx, newy);
-			newCell.domEl.addClass(newCell.type);
-			rowArray.push(newCell);
-		}
-		board.cells.push(rowArray);
-	}
-};
-
-function lossCheck() {
-	var takenCells = [];
-	for(var i = 0; i < BOARD_HEIGHT; i++) {
-		for(var j = 0; j < BOARD_WIDTH; j++) {
-			if(board.cells[i][j].status == 1 || board.cells[i][j].status == 2) {
-				takenCells.push(board.cells[i][j]);
-			}
-		}
-	}
-	if(takenCells.length == TOTAL_CELLS) {
-		game = false;	//End game
-	}
-}
-
-function generateRandPair(type) {
-	if(lossCheck()) {
-		//end game
-	}
-	var emptyCells = [];
-	for(var i = 0; i < BOARD_HEIGHT; i++) {
-		for(var j = 0; j < BOARD_WIDTH; j++) {
-			if(board.cells[i][j].type == "empty") {
-				emptyCells.push(board.cells[i][j]);
-			}
-		}
-	}
-	var random1 = emptyCells[Math.floor(Math.random()*emptyCells.length)];
-	var random2 = emptyCells[Math.floor(Math.random()*emptyCells.length)];
-	if(type != "block") {
-		board.makeActive(random1, type);
-		board.makeActive(random2, type);
-	}
-	else {
-		board.makeBlock(random1);
-		board.makeBlock(random2);
-	}
-}
-
-function startTimer() {
-	setInterval(function(){
-		if(paused == false) {
-			var generatedType = ACTIVE_TYPES[Math.floor(Math.random()*ACTIVE_TYPES.length)];
-			if(timer%2 == 0) {
-				generateRandPair(generatedType);
-			}
-			timer++;
-		}
-	}, 1000);
-}
-
-setCells();
-
-//Cell click handler
+//Cell click
 $('.cell').on("click touchstart", function(e){
 	e.preventDefault();
 	if(paused == false) {
@@ -408,38 +306,42 @@ $('.cell').on("click touchstart", function(e){
 	}
 });
 
+//Pause
 $('.pause-btn').on("click touchstart", function(e){
 	e.preventDefault();
 	if(paused == true) {
+		$('.board').removeClass('paused');
 		paused = false;
 	}
 	else {
 		paused = true;
+		$('.board').addClass('paused');
 	}
 });
 
-// $(document).keydown(function(e) {
-//     switch(e.which) {
-//         case 37: // left
-//         board.shiftLeft();
-//         break;
+//Animations
 
-//         case 38: // up
-//         board.shiftUp();
-//         break;
+function flashPath(pathArray) {
+	for(var i = 0; i < pathArray.length; i++) {
+		(function(i){
+			setTimeout(function(){
+				pathArray[i].domEl.addClass('pathflash').delay(500).queue(function(next){
+					pathArray[i].domEl.removeClass('pathflash').dequeue();
+				});
+			}, 100 * i);
+		}(i));
+	}
+}
 
-//         case 39: // right
-//         board.shiftRight();
-//         break;
+function flashError(array) {
+	for (var i = 0; i < array.length; i++) {
+		$(array[i]).addClass('error').delay(500).queue(function(next){
+			$(this).removeClass('error').dequeue();
+		});
+	}
+}
 
-//         case 40: // down
-//         board.shiftDown();
-//         break;
-
-//         default: return; // exit this handler for other keys
-//     }
-//     e.preventDefault(); // prevent the default action (scroll / move caret)
-// });
+//Initialization functions
 
 function startEndless() {
 	setCells();
@@ -447,4 +349,5 @@ function startEndless() {
 	startTimer();
 }
 
-startEndless();
+setCells();
+startEndless();		//Start
