@@ -1,13 +1,6 @@
-//require game.js
-//requires canvas.js
 //All patherfinder.js related code disabled
 
-//startTimer
-
-//Game object - export
-
 function Game() {
-    this.activeTypes = [];
     this.timer = 0;
     this.isActive = false;
     this.timePlayed = 0;
@@ -15,40 +8,40 @@ function Game() {
     this.board = [];
 }
 
-Game.prototype.startTimer = function() {
-    var curObject = this;
-    var board = curObject.board[0];
-    //Make sure board is object
-    setInterval(function(){
-        if(paused === false) {
-            var generatedType = curObject[Math.floor(Math.random()*curObject.length)];
-            if(timer%2 === 0) {
-                generateRandPair(generatedType);
-            }
-            timer++;
-        }
-    }, 1000);
-};
-
 Game.prototype.lossCheck = function() {
-    
+
 };
 
 Game.prototype.run = function(width, height, canvas) {
     var curObject = this;
     curObject.board.push(new Board(width, height));
+    curObject.board[0].setGrid();
+    console.log(curObject.board[0].grid);
     curObject.board[0].setCells();
-    //Could make canvas a property of Game
+
+    //timer
+    setInterval(function(){
+        if (curObject.pause === false) {
+            if (curObject.timer%2 === 0) {
+                curObject.board[0].generateRandCell();
+            }
+            curObject.timer++;
+        }
+    }, 1000);
     if (canvas && typeof canvas == "object") {
-        canvas.drawBoard();
+        //canvas handlers
+        //Event handlers
+        canvas.gameEvent();
+        //60 fps refresh
+        setInterval(function(){
+            var ctx = canvas.canvas.getContext('2d');
+            var canHeight = document.getElementById('game-wrapper').offsetHeight;
+            ctx.clearRect(0, 0, canHeight, canHeight);
+            canvas.drawBoard();
+        }, 1000 / 60);
     }
 
-    // curObject.startTimer();
 };
-
-
-
-// module.exports = Game;
 
 function Board(width, height) {
     this.width = width;
@@ -56,36 +49,50 @@ function Board(width, height) {
     this.cells = [];
     this.selectedCells = [];
     this.full = false;
+    this.grid = undefined;
+    this.activeTypes = [1, 2, 3, 4, 5, 6, 7, "block"];
 }
 
-//makeCell function
+//makeCell functions
 
 Board.prototype.makeActive = function(cell, newType) {
+    var curObject = this;
     //Replace Cell in board.cells
-    var temp = this.cells[cell.y][cell.x];
-    this.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
-    this.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
+    var temp = curObject.cells[cell.y][cell.x];
+    curObject.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
+    curObject.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
     //Set PF
-    // grid.setWalkableAt(cell.x, cell.y, false);
-    // grid.setWalkableAt(cell.x, cell.y, false);
+    curObject.grid.setWalkableAt(cell.x, cell.y, false);
+    curObject.grid.setWalkableAt(cell.x, cell.y, false);
 };
 
 Board.prototype.makeEmpty = function(cell) {
     var temp = this.cells[cell.y][cell.x];
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
-    // grid.setWalkableAt(cell.x, cell.y, true);
-    // grid.setWalkableAt(cell.x, cell.y, true);
+    curObject.grid.setWalkableAt(cell.x, cell.y, true);
+    curObject.grid.setWalkableAt(cell.x, cell.y, true);
 };
 
 Board.prototype.makeBlock = function(cell) {
     var temp = this.cells[cell.y][cell.x];
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
-    // grid.setWalkableAt(cell.x, cell.y, true);
-    // grid.setWalkableAt(cell.x, cell.y, true);
+    curObject.grid.setWalkableAt(cell.x, cell.y, true);
+    curObject.grid.setWalkableAt(cell.x, cell.y, true);
 };
 
+Board.prototype.removeSelection = function() {
+    var curObject = this;
+    if (curObject.selectedCells.length) {
+        for (var i = 0; i < curObject.selectedCells.length; i++) {
+            curObject.selectedCells[i].selected = false;
+        }
+        curObject.selectedCells = [];
+    }
+};
+
+//Get cell from board
 Board.prototype.getCell = function(x, y) {
     var curObject = this;
     for (var i = 0; i < curObject.cells.length; i++) {
@@ -97,6 +104,7 @@ Board.prototype.getCell = function(x, y) {
     }
 };
 
+//Set board for play with all empty cells
 Board.prototype.setCells = function() {
     var curObject = this;
     curObject.cells = [];
@@ -112,12 +120,26 @@ Board.prototype.setCells = function() {
     }
 };
 
-//Checks for loss then replaces two empty Cells within board with ActiveCells
-Board.prototype.generateRandPair = function(type) {
+Board.prototype.setGrid = function() {
     var curObject = this;
-    if(curObject.lossCheck()) {
-        //end game
+    var matrix = [];
+    for (var i = 0; i < curObject.width; i++) {
+        var matRow = [];
+        for (var j = 0; j < curObject.height; j++) {
+            matRow.push(0);
+        }
+        matrix.push(matRow);
     }
+    curObject.grid = new PF.Grid(curObject.width, curObject.height, matrix);
+};
+
+//Checks for loss then replaces two empty Cells within board with ActiveCells
+Board.prototype.generateRandCell = function() {
+    var curObject = this;
+    var randType = curObject.activeTypes[Math.floor(Math.random()*curObject.activeTypes.length)];
+    // if(curObject.lossCheck()) {
+    //     //end game
+    // }
     var emptyCells = [];
     for(var i = 0; i < curObject.height; i++) {
         for(var j = 0; j < curObject.width; j++) {
@@ -126,32 +148,68 @@ Board.prototype.generateRandPair = function(type) {
             }
         }
     }
-    var random1 = emptyCells[Math.floor(Math.random()*emptyCells.length)];
-    var random2 = emptyCells[Math.floor(Math.random()*emptyCells.length)];
-    if(type != "block") {
-        curObject.makeActive(random1, type);
-        curObject.makeActive(random2, type);
+    var random = emptyCells[Math.floor(Math.random()*emptyCells.length)];
+    // var random2 = emptyCells[Math.floor(Math.random()*emptyCells.length)];
+    if(randType != "block") {
+        curObject.makeActive(random, randType);
+        curObject.makeActive(random, randType);
     }
     else {
-        curObject.makeBlock(random1);
-        curObject.makeBlock(random2);
+        curObject.makeBlock(random);
+        curObject.makeBlock(random);
     }
 };
 
-Board.prototype.lossCheck = function() {
-    var curObject = this;
-    var takenCells = [];
-    for(var i = 0; i < curObject.width; i++) {
-        for(var j = 0; j < curObject.height; j++) {
-            if(curObject.cells[i][j].status == 1 || curObject.cells[i][j].status == 2) {
-                takenCells.push(curObject.cells[i][j]);
-            }
-        }
-    }
-    if(takenCells.length == curObject.cells.length) {
-        //End game
-        curObject.full = true;
+//Simple match of ActiveCells
+Board.prototype.typeMatch = function(cell1, cell2) {
+    if(cell1.status == 1 && cell2.status == 1 && cell1.type == cell2.type) {
         return true;
+    }
+    return false;
+};
+
+//Checks for path between matching cells
+Board.prototype.getPath = function(cell1, cell2) {
+    curObject = this;
+    //PathfindingJS stuff
+    curObject.grid.setWalkableAt(cell1.x, cell1.y, true);
+    curObject.grid.setWalkableAt(cell2.x, cell2.y, true);
+    var gridBackup = curObject.grid.clone();
+    var finder = new PF.AStarFinder();
+    var path = finder.findPath(cell1.x, cell1.y, cell2.x, cell2.y, curObject.grid);
+    curObject.grid = gridBackup;
+
+    //Diagonals throw exception
+    try{
+        var checkTurns = PF.Util.smoothenPath(curObject.grid, path);
+    }
+    catch(err){
+        path = [];
+        return false;       //Failure
+    }
+
+    if(path.length) {
+        for(var i = 0; i < path.length; i++) {
+            var boardCell = curObject.getCell(path[i][0], path[i][1]);
+            boardCell.inPath = true;
+            //animate cell
+            boardCell.inPath = false;
+        }
+        return true;
+    }
+    return true;
+};
+
+//If match & path, clear cells and play animation
+Board.prototype.matchCells = function(cell1, cell2) {
+    curObject = this;
+    if (curObject.typeMatch(cell1, cell2))  {
+        if (curObject.getPath(cell1, cell2)) {
+            curObject.makeEmpty(cell1);
+            curObject.makeEmpty(cell2);
+            return true;
+        }
+        return false;
     }
     return false;
 };
@@ -163,13 +221,8 @@ function Cell(x, y) {
     this.type = "empty";
     this.status = 0;
     this.selected = false;
+    this.inPath = false;
 }
-
-// Cell.prototype.makeWalkable = function() {
-//     //Get grid object
-//     grid.setWalkableAt(this.x, this.y, false);
-//     grid.setWalkableAt(this.x, this.y, false);
-// };
 
 //Active cell 
 function ActiveCell(x, y, type) {
@@ -188,7 +241,6 @@ function BlockCell(x, y) {
 }
 BlockCell.prototype = new Cell();
 BlockCell.prototype.constructor = BlockCell;
-//TODO makeWalkable()
 
 function mainCanvas(sizeCallback) {
     this.canvas = document.getElementById('main');
@@ -198,6 +250,96 @@ function mainCanvas(sizeCallback) {
         sizeCallback(this.canvas);
     }
 }
+
+mainCanvas.prototype.gameEvent = function() {
+    var curObject = this;
+
+    //
+    curObject.canvas.addEventListener('click', function(event) {
+        event.preventDefault();
+        var x = event.pageX - document.getElementById('game-wrapper').offsetLeft;
+        var y = event.pageY - document.getElementById('game-wrapper').offsetTop;
+        var cellX = Math.floor(x / (document.getElementById('game-wrapper').offsetWidth / 6));
+        var cellY = Math.floor(y / (document.getElementById('game-wrapper').offsetHeight / 6));
+        var evBoard = curObject.game.board[0]
+        var selectedCell = evBoard.getCell(cellX, cellY);
+        if (selectedCell.type != "empty" && selectedCell.type != "block") {
+            selectedCell.selected = true;
+            evBoard.selectedCells.push(selectedCell);
+            if (evBoard.selectedCells.length == 2 && evBoard.selectedCells[0] != evBoard.selectedCells[1]) {
+                if (evBoard.matchCells(evBoard.selectedCells[0], evBoard.selectedCells[1])) {
+                    evBoard.removeSelection();
+                }
+                evBoard.removeSelection();
+            }
+            else if (evBoard.selectedCells[0] == evBoard.selectedCells[1]) {
+                evBoard.removeSelection();
+            }
+
+        }
+    }, false);
+};
+
+mainCanvas.prototype.typeColor = function(cell) {
+    var typeHex = "";
+    if(typeof cell.type == "number") {
+        switch(cell.type) {
+            //red
+            case 1:
+                typeHex = "#e51c23";
+                break;
+
+            //blue
+            case 2:
+                typeHex = "#5677fc";
+                break;
+
+            //green
+            case 3:
+                typeHex = "#259b24";
+                break;
+
+            //yellow
+            case 4:
+                typeHex = "#ffeb3b";
+                break;
+
+            //orange
+            case 5:
+                typeHex = "#ff9800";
+                break;
+
+            //purple
+            case 6:
+                typeHex = "#9c27b0";
+                break;
+
+            //brown
+            case 7:
+                typeHex = "#795548";
+                break;
+        }
+        return typeHex;
+    }
+    else if (typeof cell.type == "string") {
+        switch(cell.type) {
+            case "block":
+                typeHex = "#212121";
+                break;
+        }
+        return typeHex;
+    }
+};
+
+mainCanvas.prototype.typeStroke = function(cell) {
+    if (typeof cell.selected == "boolean") {
+        if (cell.selected === true) {
+
+            return "#14e715";
+        }
+        return "#212121";
+    }
+};
 
 mainCanvas.prototype.drawBoard = function() {
     var curObject = this;
@@ -212,8 +354,16 @@ mainCanvas.prototype.drawBoard = function() {
                 var startY = curObject.game.board[0].cells[i][j].y * cellSize;
                 if(curObject.game.board[0].cells[i][j].status !== 0) {
                     //if square isn't empty, draw
-                    ctx.fillStyle = "red";
-                    ctx.fillRect(startX, startY, (0.1 * ctx.height), (cellSize * cellSize));
+                    //get hex color from typeColor
+                    if (curObject.game.board[0].cells[i][j].selected === true) {
+                        ctx.fillStyle = "#14e715";
+                    } else {
+                        ctx.fillStyle = curObject.typeColor(curObject.game.board[0].cells[i][j]);
+                    }
+                    ctx.strokeStyle = curObject.typeStroke(curObject.game.board[0].cells[i][j]);
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(startX, startY, cellSize, cellSize);
+                    ctx.fillRect(startX, startY, cellSize, cellSize);
                 }
                 else if (curObject.game.board[0].cells[i][j].status === 0) {
                     ctx.fillStyle = "#f4f5f4";
@@ -227,13 +377,3 @@ mainCanvas.prototype.drawBoard = function() {
     }
 };
 
-// mainCanvas.prototype.startGame = function(width, height) {
-//     var curObject = this;
-//     curObject.game.run(6, 6);
-//     // setInterval(function(){
-//     //     var ctx = curObject.canvas.getContext('2d');
-//     //     // ctx.clearRect(0, 0, 400, 400);
-//     //     curObject.drawBoard();
-//     // }, 1000 / curObject.fps);
-//     curObject.drawBoard();
-// };
