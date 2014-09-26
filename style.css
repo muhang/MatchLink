@@ -6,6 +6,10 @@ html, body, #main {
     padding: 0;
 }
 
+.header {
+    text-align: center;
+}
+
 #game-wrapper {
     width: 510px;
     height: 510px;

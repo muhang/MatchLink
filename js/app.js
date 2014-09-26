@@ -1,5 +1,7 @@
 //All patherfinder.js related code disabled
 
+//GAME
+
 function Game() {
     this.timer = 0;
     this.isActive = false;
@@ -42,6 +44,8 @@ Game.prototype.run = function(width, height, canvas) {
     }
 
 };
+
+//BOARD
 
 function Board(width, height) {
     this.width = width;
@@ -192,8 +196,9 @@ Board.prototype.getPath = function(cell1, cell2) {
         for(var i = 0; i < path.length; i++) {
             var boardCell = curObject.getCell(path[i][0], path[i][1]);
             boardCell.inPath = true;
+            boardCell.pathNumber = i + 1;
             //animate cell
-            boardCell.inPath = false;
+            // boardCell.inPath = false;
         }
         return true;
     }
@@ -205,14 +210,14 @@ Board.prototype.matchCells = function(cell1, cell2) {
     curObject = this;
     if (curObject.typeMatch(cell1, cell2))  {
         if (curObject.getPath(cell1, cell2)) {
-            curObject.makeEmpty(cell1);
-            curObject.makeEmpty(cell2);
             return true;
         }
         return false;
     }
     return false;
 };
+
+//CELL
 
 //Cell constructor
 function Cell(x, y) {
@@ -222,6 +227,7 @@ function Cell(x, y) {
     this.status = 0;
     this.selected = false;
     this.inPath = false;
+    this.pathNumber = 0;
 }
 
 //Active cell 
@@ -241,6 +247,8 @@ function BlockCell(x, y) {
 }
 BlockCell.prototype = new Cell();
 BlockCell.prototype.constructor = BlockCell;
+
+//CANVAS
 
 function mainCanvas(sizeCallback) {
     this.canvas = document.getElementById('main');
@@ -268,7 +276,28 @@ mainCanvas.prototype.gameEvent = function() {
             evBoard.selectedCells.push(selectedCell);
             if (evBoard.selectedCells.length == 2 && evBoard.selectedCells[0] != evBoard.selectedCells[1]) {
                 if (evBoard.matchCells(evBoard.selectedCells[0], evBoard.selectedCells[1])) {
+                    var pathCells = [];
+                    evBoard.makeEmpty(evBoard.selectedCells[0]);
+                    evBoard.makeEmpty(evBoard.selectedCells[1]);
                     evBoard.removeSelection();
+                    //animation, set inPath to false
+                    for (var i = 0; i < evBoard.cells.length; i++) {
+                        if (evBoard.cells[i].pathNumber != 0) {
+                            pathCells.push(evBoard.cells[i]);
+                        }
+                    }
+                    pathCells = pathCells.sort(
+                        function(a, b) {
+                            return a - b;
+                        });
+                    for (var i = 0; i < pathCells.length; i++) {
+                        (function(i){
+                            setTimeout(function(){
+                                console.log(pathCells[i] + "leaving path");
+                                pathCells[i].inPath = false;
+                            }, 400);
+                        }(i));
+                    }
                 }
                 evBoard.removeSelection();
             }
@@ -282,7 +311,7 @@ mainCanvas.prototype.gameEvent = function() {
 
 mainCanvas.prototype.typeColor = function(cell) {
     var typeHex = "";
-    if(typeof cell.type == "number") {
+    if(typeof cell.type == "number" && cell.inPath === false) {
         switch(cell.type) {
             //red
             case 1:
@@ -321,14 +350,19 @@ mainCanvas.prototype.typeColor = function(cell) {
         }
         return typeHex;
     }
-    else if (typeof cell.type == "string") {
-        switch(cell.type) {
-            case "block":
-                typeHex = "#212121";
-                break;
+    else {
+        if (typeof cell.type == "string" && cell.inPath === false) {
+            switch(cell.type) {
+                case "block":
+                    typeHex = "#212121";
+                    break;
+            }
+            return typeHex;
         }
-        return typeHex;
-    }
+        else if (cell.inPath === true) {
+            typeHex = "#000";
+        }
+    } 
 };
 
 mainCanvas.prototype.typeStroke = function(cell) {
