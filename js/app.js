@@ -15,19 +15,19 @@ Game.prototype.lossCheck = function() {
 };
 
 Game.prototype.run = function(width, height, canvas) {
-    var curObject = this;
-    curObject.board.push(new Board(width, height));
-    curObject.board[0].setGrid();
-    console.log(curObject.board[0].grid);
-    curObject.board[0].setCells();
+    var self = this;
+    self.board.push(new Board(width, height));
+    self.board[0].setGrid();
+    console.log(self.board[0].grid);
+    self.board[0].setCells();
 
     //timer
     setInterval(function(){
-        if (curObject.pause === false) {
-            if (curObject.timer%2 === 0) {
-                curObject.board[0].generateRandCell();
+        if (self.pause === false) {
+            if (self.timer%2 === 0) {
+                self.board[0].generateRandCell();
             }
-            curObject.timer++;
+            self.timer++;
         }
     }, 1000);
     if (canvas && typeof canvas == "object") {
@@ -60,49 +60,49 @@ function Board(width, height) {
 //makeCell functions
 
 Board.prototype.makeActive = function(cell, newType) {
-    var curObject = this;
+    var self = this;
     //Replace Cell in board.cells
-    var temp = curObject.cells[cell.y][cell.x];
-    curObject.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
-    curObject.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
+    var temp = self.cells[cell.y][cell.x];
+    self.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
+    self.cells[cell.y][cell.x] = new ActiveCell(temp.x, temp.y, newType);
     //Set PF
-    curObject.grid.setWalkableAt(cell.x, cell.y, false);
-    curObject.grid.setWalkableAt(cell.x, cell.y, false);
+    self.grid.setWalkableAt(cell.x, cell.y, false);
+    self.grid.setWalkableAt(cell.x, cell.y, false);
 };
 
 Board.prototype.makeEmpty = function(cell) {
     var temp = this.cells[cell.y][cell.x];
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
-    curObject.grid.setWalkableAt(cell.x, cell.y, true);
-    curObject.grid.setWalkableAt(cell.x, cell.y, true);
+    self.grid.setWalkableAt(cell.x, cell.y, true);
+    self.grid.setWalkableAt(cell.x, cell.y, true);
 };
 
 Board.prototype.makeBlock = function(cell) {
     var temp = this.cells[cell.y][cell.x];
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
-    curObject.grid.setWalkableAt(cell.x, cell.y, true);
-    curObject.grid.setWalkableAt(cell.x, cell.y, true);
+    self.grid.setWalkableAt(cell.x, cell.y, true);
+    self.grid.setWalkableAt(cell.x, cell.y, true);
 };
 
 Board.prototype.removeSelection = function() {
-    var curObject = this;
-    if (curObject.selectedCells.length) {
-        for (var i = 0; i < curObject.selectedCells.length; i++) {
-            curObject.selectedCells[i].selected = false;
+    var self = this;
+    if (self.selectedCells.length) {
+        for (var i = 0; i < self.selectedCells.length; i++) {
+            self.selectedCells[i].selected = false;
         }
-        curObject.selectedCells = [];
+        self.selectedCells = [];
     }
 };
 
 //Get cell from board
 Board.prototype.getCell = function(x, y) {
-    var curObject = this;
-    for (var i = 0; i < curObject.cells.length; i++) {
-        for (var j = 0; j < curObject.cells[i].length; j++) {
-            if (curObject.cells[i][j].x == x && curObject.cells[i][j].y == y) {
-                return curObject.cells[i][j];
+    var self = this;
+    for (var i = 0; i < self.cells.length; i++) {
+        for (var j = 0; j < self.cells[i].length; j++) {
+            if (self.cells[i][j].x == x && self.cells[i][j].y == y) {
+                return self.cells[i][j];
             }
         }
     }
@@ -110,57 +110,57 @@ Board.prototype.getCell = function(x, y) {
 
 //Set board for play with all empty cells
 Board.prototype.setCells = function() {
-    var curObject = this;
-    curObject.cells = [];
-    for(var i = 0; i < curObject.height; i++) {
+    var self = this;
+    self.cells = [];
+    for(var i = 0; i < self.height; i++) {
         var rowArray = [];
         var newy = i;
-        for(var j = 0; j < curObject.width; j++) {
+        for(var j = 0; j < self.width; j++) {
             var newx = j;
             var newCell = new Cell(newx, newy);
             rowArray.push(newCell);
         }
-        curObject.cells.push(rowArray);
+        self.cells.push(rowArray);
     }
 };
 
 Board.prototype.setGrid = function() {
-    var curObject = this;
+    var self = this;
     var matrix = [];
-    for (var i = 0; i < curObject.width; i++) {
+    for (var i = 0; i < self.width; i++) {
         var matRow = [];
-        for (var j = 0; j < curObject.height; j++) {
+        for (var j = 0; j < self.height; j++) {
             matRow.push(0);
         }
         matrix.push(matRow);
     }
-    curObject.grid = new PF.Grid(curObject.width, curObject.height, matrix);
+    self.grid = new PF.Grid(self.width, self.height, matrix);
 };
 
 //Checks for loss then replaces two empty Cells within board with ActiveCells
 Board.prototype.generateRandCell = function() {
-    var curObject = this;
-    var randType = curObject.activeTypes[Math.floor(Math.random()*curObject.activeTypes.length)];
-    // if(curObject.lossCheck()) {
+    var self = this;
+    var randType = self.activeTypes[Math.floor(Math.random()*self.activeTypes.length)];
+    // if(self.lossCheck()) {
     //     //end game
     // }
     var emptyCells = [];
-    for(var i = 0; i < curObject.height; i++) {
-        for(var j = 0; j < curObject.width; j++) {
-            if(curObject.cells[i][j].type == "empty") {
-                emptyCells.push(curObject.cells[i][j]);
+    for(var i = 0; i < self.height; i++) {
+        for(var j = 0; j < self.width; j++) {
+            if(self.cells[i][j].type == "empty") {
+                emptyCells.push(self.cells[i][j]);
             }
         }
     }
     var random = emptyCells[Math.floor(Math.random()*emptyCells.length)];
     // var random2 = emptyCells[Math.floor(Math.random()*emptyCells.length)];
     if(randType != "block") {
-        curObject.makeActive(random, randType);
-        curObject.makeActive(random, randType);
+        self.makeActive(random, randType);
+        self.makeActive(random, randType);
     }
     else {
-        curObject.makeBlock(random);
-        curObject.makeBlock(random);
+        self.makeBlock(random);
+        self.makeBlock(random);
     }
 };
 
@@ -174,18 +174,18 @@ Board.prototype.typeMatch = function(cell1, cell2) {
 
 //Checks for path between matching cells
 Board.prototype.getPath = function(cell1, cell2) {
-    curObject = this;
+    var self = this;
     //PathfindingJS stuff
-    curObject.grid.setWalkableAt(cell1.x, cell1.y, true);
-    curObject.grid.setWalkableAt(cell2.x, cell2.y, true);
-    var gridBackup = curObject.grid.clone();
+    self.grid.setWalkableAt(cell1.x, cell1.y, true);
+    self.grid.setWalkableAt(cell2.x, cell2.y, true);
+    var gridBackup = self.grid.clone();
     var finder = new PF.AStarFinder();
-    var path = finder.findPath(cell1.x, cell1.y, cell2.x, cell2.y, curObject.grid);
-    curObject.grid = gridBackup;
+    var path = finder.findPath(cell1.x, cell1.y, cell2.x, cell2.y, self.grid);
+    self.grid = gridBackup;
 
     //Diagonals throw exception
     try{
-        var checkTurns = PF.Util.smoothenPath(curObject.grid, path);
+        var checkTurns = PF.Util.smoothenPath(self.grid, path);
     }
     catch(err){
         path = [];
@@ -194,7 +194,7 @@ Board.prototype.getPath = function(cell1, cell2) {
 
     if(path.length) {
         for(var i = 0; i < path.length; i++) {
-            var boardCell = curObject.getCell(path[i][0], path[i][1]);
+            var boardCell = self.getCell(path[i][0], path[i][1]);
             boardCell.inPath = true;
             boardCell.pathNumber = i + 1;
             //animate cell
@@ -207,9 +207,9 @@ Board.prototype.getPath = function(cell1, cell2) {
 
 //If match & path, clear cells and play animation
 Board.prototype.matchCells = function(cell1, cell2) {
-    curObject = this;
-    if (curObject.typeMatch(cell1, cell2))  {
-        if (curObject.getPath(cell1, cell2)) {
+    var self = this;
+    if (self.typeMatch(cell1, cell2))  {
+        if (self.getPath(cell1, cell2)) {
             return true;
         }
         return false;
@@ -230,16 +230,14 @@ function Cell(x, y) {
     this.pathNumber = 0;
 }
 
-//Active cell 
 function ActiveCell(x, y, type) {
-    Cell.apply(this, arguments);    
+    Cell.apply(this, arguments);
     this.type = type;
     this.status = 1;
 }
 ActiveCell.prototype = new Cell();
 ActiveCell.prototype.constructor = ActiveCell;
 
-//Blocked cell constructor
 function BlockCell(x, y) {
     Cell.apply(this, arguments);
     this.type = "block";
@@ -260,16 +258,15 @@ function mainCanvas(sizeCallback) {
 }
 
 mainCanvas.prototype.gameEvent = function() {
-    var curObject = this;
+    var self = this;
 
-    //
-    curObject.canvas.addEventListener('click', function(event) {
+    self.canvas.addEventListener('click', function(event) {
         event.preventDefault();
         var x = event.pageX - document.getElementById('game-wrapper').offsetLeft;
         var y = event.pageY - document.getElementById('game-wrapper').offsetTop;
         var cellX = Math.floor(x / (document.getElementById('game-wrapper').offsetWidth / 6));
         var cellY = Math.floor(y / (document.getElementById('game-wrapper').offsetHeight / 6));
-        var evBoard = curObject.game.board[0]
+        var evBoard = self.game.board[0]
         var selectedCell = evBoard.getCell(cellX, cellY);
         if (selectedCell.type != "empty" && selectedCell.type != "block") {
             selectedCell.selected = true;
@@ -362,7 +359,7 @@ mainCanvas.prototype.typeColor = function(cell) {
         else if (cell.inPath === true) {
             typeHex = "#000";
         }
-    } 
+    }
 };
 
 mainCanvas.prototype.typeStroke = function(cell) {
@@ -376,30 +373,30 @@ mainCanvas.prototype.typeStroke = function(cell) {
 };
 
 mainCanvas.prototype.drawBoard = function() {
-    var curObject = this;
-    if(curObject.canvas.getContext('2d')) {
-        var ctx = curObject.canvas.getContext('2d');
+    var self = this;
+    if(self.canvas.getContext('2d')) {
+        var ctx = self.canvas.getContext('2d');
 
         //draw square for each cell
         var cellSize = document.getElementById('game-wrapper').offsetHeight / 6;
-        for (var i = 0; i < curObject.game.board[0].cells.length; i++) {
-            for (var j = 0; j < curObject.game.board[0].cells[i].length; j++){
-                var startX = curObject.game.board[0].cells[i][j].x * cellSize;
-                var startY = curObject.game.board[0].cells[i][j].y * cellSize;
-                if(curObject.game.board[0].cells[i][j].status !== 0) {
+        for (var i = 0; i < self.game.board[0].cells.length; i++) {
+            for (var j = 0; j < self.game.board[0].cells[i].length; j++){
+                var startX = self.game.board[0].cells[i][j].x * cellSize;
+                var startY = self.game.board[0].cells[i][j].y * cellSize;
+                if(self.game.board[0].cells[i][j].status !== 0) {
                     //if square isn't empty, draw
                     //get hex color from typeColor
-                    if (curObject.game.board[0].cells[i][j].selected === true) {
+                    if (self.game.board[0].cells[i][j].selected === true) {
                         ctx.fillStyle = "#14e715";
                     } else {
-                        ctx.fillStyle = curObject.typeColor(curObject.game.board[0].cells[i][j]);
+                        ctx.fillStyle = self.typeColor(self.game.board[0].cells[i][j]);
                     }
-                    ctx.strokeStyle = curObject.typeStroke(curObject.game.board[0].cells[i][j]);
+                    ctx.strokeStyle = self.typeStroke(self.game.board[0].cells[i][j]);
                     ctx.lineWidth = 1;
                     ctx.strokeRect(startX, startY, cellSize, cellSize);
                     ctx.fillRect(startX, startY, cellSize, cellSize);
                 }
-                else if (curObject.game.board[0].cells[i][j].status === 0) {
+                else if (self.game.board[0].cells[i][j].status === 0) {
                     ctx.fillStyle = "#f4f5f4";
                     ctx.fillRect(startX, startY, cellSize, cellSize);
                     ctx.strokeStyle = "#aaa";
