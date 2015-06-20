@@ -1,5 +1,3 @@
-//All patherfinder.js related code disabled
-
 //GAME
 
 function Game() {
@@ -71,6 +69,7 @@ Board.prototype.makeActive = function(cell, newType) {
 };
 
 Board.prototype.makeEmpty = function(cell) {
+    var self = this;
     var temp = this.cells[cell.y][cell.x];
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
@@ -79,6 +78,7 @@ Board.prototype.makeEmpty = function(cell) {
 };
 
 Board.prototype.makeBlock = function(cell) {
+    var self = this;
     var temp = this.cells[cell.y][cell.x];
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
     this.cells[cell.y][cell.x] = new Cell(temp.x, temp.y);
